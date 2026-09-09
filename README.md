@@ -31,12 +31,14 @@ DAPETIN
 src/dapetin/
 ├── domain/        # core models and business rules
 ├── discovery/     # provider-agnostic discovery interfaces
-├── enrichment/   # normalization/enrichment
+├── enrichment/    # normalization/enrichment
 ├── qualification/ # opportunity rules
+├── export.py      # CSV/JSON opportunity export
 └── cli.py         # local MVP command
 
 tests/
-└── test_scoring.py
+├── test_scoring.py
+└── test_export.py
 ```
 
 ## Quick start
@@ -64,9 +66,9 @@ pytest
 - [x] Project foundation
 - [x] Domain model
 - [x] Explainable opportunity scoring
-- [ ] First discovery provider adapter
-- [ ] Website enrichment
-- [ ] CSV/JSON export
+- [x] First discovery provider adapter
+- [x] Website enrichment
+- [x] CSV/JSON export
 - [ ] Lead database and pipeline
 - [ ] Web dashboard
 - [ ] AI-assisted opportunity analysis
