@@ -10,7 +10,7 @@ if not exist ".venv\Scripts\python.exe" (
     py -3 -m venv .venv
     if errorlevel 1 (
         echo.
-        echo Gagal membuat virtual environment. Pastikan Python 3.11+ terpasang.
+        echo Gagal membuat virtual environment. Pastikan Python 3.13.14 terpasang.
         pause
         exit /b 1
     )
