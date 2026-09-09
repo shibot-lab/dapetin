@@ -31,6 +31,16 @@ def test_dashboard_renders_lead_and_status_form(tmp_path):
     assert "qualified" in html
 
 
+def test_dashboard_renders_discovery_form():
+    html = render_dashboard([])
+
+    assert 'action="/discover"' in html
+    assert 'name="keyword"' in html
+    assert 'name="location"' in html
+    assert 'name="limit"' in html
+    assert "OpenStreetMap" in html
+
+
 def test_dashboard_filter_uses_pipeline_status(tmp_path):
     database = LeadDatabase(tmp_path / "test.db")
     first_id = database.save(make_opportunity("First Lead"))
