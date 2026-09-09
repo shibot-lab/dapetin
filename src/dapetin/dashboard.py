@@ -61,6 +61,7 @@ th, td {{ padding: 12px 10px; border-bottom: 1px solid #eee; text-align: left; v
 th {{ background: #fafafa; }}
 select, button {{ padding: 7px; margin-top: 4px; }}
 small {{ color: #666; }}
+footer {{ margin-top: 20px; color: #666; font-size: 13px; }}
 </style>
 </head>
 <body>
@@ -80,6 +81,7 @@ small {{ color: #666; }}
 <tbody>{body}</tbody>
 </table>
 </div>
+<footer>Business discovery data may be sourced from OpenStreetMap contributors, available under the Open Database License (ODbL).</footer>
 </main>
 </body>
 </html>"""
