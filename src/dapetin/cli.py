@@ -5,7 +5,8 @@ from dapetin.analysis import OpenAIOpportunityAnalysisProvider
 from dapetin.database import LeadDatabase
 from dapetin.dashboard import serve_dashboard
 from dapetin.discovery.file_provider import CsvDiscoveryProvider
-from dapetin.discovery.providers import DemoDiscoveryProvider, DiscoveryQuery
+from dapetin.discovery.osm_provider import OpenStreetMapDiscoveryProvider
+from dapetin.discovery.providers import DiscoveryQuery
 from dapetin.domain.models import PipelineStatus
 from dapetin.enrichment.website import WebsiteEnricher
 from dapetin.outreach import SmtpOutreachProvider, send_targeted_outreach
@@ -58,7 +59,7 @@ def _print_opportunities(opportunities) -> None:
         business = opportunity.business
         print(f"\n{index}. {business.name}")
         print(f"   category: {business.category or '-'}")
-        print(f"   location: {business.address or '-'}")
+        print(f"   location: {business.address or business.city or '-'}")
         print(f"   phone: {business.phone or '-'}")
         print(f"   website: {business.website or '-'}")
         print(f"   email: {business.email or '-'}")
@@ -72,7 +73,7 @@ def main() -> None:
     args = build_parser().parse_args()
     if args.command == "discover":
         query = DiscoveryQuery(args.keyword, args.location, args.limit)
-        provider = CsvDiscoveryProvider(args.csv_path) if args.csv_path else DemoDiscoveryProvider()
+        provider = CsvDiscoveryProvider(args.csv_path) if args.csv_path else OpenStreetMapDiscoveryProvider()
         run = run_discovery(provider, query)
         if args.enrich:
             enrich_run(run, WebsiteEnricher())
@@ -81,7 +82,9 @@ def main() -> None:
         for opportunity in run.opportunities:
             database.save(opportunity)
 
-        print(f"DAPETIN discovery: {args.keyword!r} in {args.location!r}")
+        print(f"DAPETIN discovery: {args.keyword!r} in {args.location!r} via {provider.name}")
+        if not run.opportunities:
+            print("No businesses found for this query.")
         _print_opportunities(run.opportunities)
     elif args.command == "leads":
         database = LeadDatabase(args.db)
