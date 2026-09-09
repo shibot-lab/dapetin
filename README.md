@@ -37,7 +37,7 @@ src/dapetin/
 ├── export.py      # CSV/JSON opportunity export
 ├── analysis.py    # AI-assisted opportunity analysis
 ├── outreach.py    # targeted outreach provider
-├── dashboard.py   # local web dashboard
+├── dashboard.py   # local web dashboard and discovery UI
 └── cli.py         # local MVP command
 
 tests/
@@ -63,7 +63,7 @@ pytest
 
 ## Business discovery
 
-Discovery now uses OpenStreetMap through the read-only Overpass API by default. A CSV export remains available as an explicit provider input.
+Discovery uses OpenStreetMap through the read-only Overpass API by default. A CSV export remains available as an explicit provider input.
 
 ```bash
 python -m dapetin.cli discover kontraktor Samarinda --limit 20 --db dapetin.db
@@ -100,13 +100,13 @@ python -m dapetin.cli leads --set-status 1 contacted
 
 ## Web dashboard
 
-The local dashboard reads the existing SQLite lead database, shows saved opportunities with their explainable scores, filters by pipeline status, and updates an existing lead's pipeline status.
+The local dashboard now provides the discovery entry point for the core workflow. Enter a business keyword and location, run discovery, optionally enrich websites, and the resulting opportunities are saved to the same SQLite database and rendered in the dashboard with explainable scores and pipeline controls.
 
 ```bash
 python -m dapetin.cli dashboard --db dapetin.db
 ```
 
-Then open `http://127.0.0.1:8000` in a browser. Use `--db`, `--host`, or `--port` when a different local database or port is needed.
+Then open `http://127.0.0.1:8000`. Use `--db`, `--host`, or `--port` when a different local database or port is needed.
 
 ## AI-assisted opportunity analysis
 
