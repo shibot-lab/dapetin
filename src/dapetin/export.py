@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import csv
 import json
-from dataclasses import asdict
 from pathlib import Path
 
 from dapetin.domain.models import Opportunity
