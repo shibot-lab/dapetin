@@ -8,10 +8,12 @@ from dapetin.database import LeadDatabase
 from dapetin.domain.models import Opportunity, PipelineStatus
 
 
-def render_dashboard(opportunities: list[Opportunity], status: PipelineStatus | None = None) -> str:
+def render_dashboard(
+    records: list[tuple[int, Opportunity]], status: PipelineStatus | None = None
+) -> str:
     selected = status.value if status else ""
     rows = []
-    for index, opportunity in enumerate(opportunities, start=1):
+    for index, (lead_id, opportunity) in enumerate(records, start=1):
         business = opportunity.business
         reasons = "<br>".join(escape(reason) for reason in opportunity.score.reasons) or "-"
         status_options = "".join(
@@ -28,7 +30,7 @@ def render_dashboard(opportunities: list[Opportunity], status: PipelineStatus | 
             f"<td>{escape(business.email or '-')}</td>"
             f"<td><strong>{opportunity.score.score}/100</strong><br><small>{reasons}</small></td>"
             f'<td><form method="post" action="/status">'
-            f'<input type="hidden" name="id" value="{escape(str(index))}">'
+            f'<input type="hidden" name="id" value="{lead_id}">'
             f'<select name="status">{status_options}</select>'
             f'<button type="submit">Save</button></form></td>'
             "</tr>"
@@ -99,8 +101,12 @@ def make_handler(database: LeadDatabase):
                 self._send_html("<h1>Not found</h1>", 404)
                 return
             raw_status = parse_qs(parsed.query).get("status", [""])[0]
-            status = PipelineStatus(raw_status) if raw_status else None
-            self._send_html(render_dashboard(database.list(status), status))
+            try:
+                status = PipelineStatus(raw_status) if raw_status else None
+            except ValueError:
+                self._send_html("<h1>Invalid status</h1>", 400)
+                return
+            self._send_html(render_dashboard(database.list_with_ids(status), status))
 
         def do_POST(self) -> None:
             parsed = urlparse(self.path)
