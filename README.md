@@ -10,7 +10,7 @@ DAPETIN is an opportunity discovery platform. It starts as a focused discovery a
 
 **Output:** normalized business records with enrichment and an explainable opportunity score.
 
-The first release deliberately avoids mass messaging. Outreach will be added later with safeguards for consent, opt-out, rate limits, and provider terms.
+The first release deliberately avoids mass messaging. Outreach is targeted to one qualified lead at a time with safeguards for consent, opt-out, cooldowns, and provider terms.
 
 ## Architecture
 
@@ -20,7 +20,7 @@ DAPETIN
 ├── Enrichment     -> normalize public business/site data
 ├── Qualification  -> determine fit and opportunity signals
 ├── Scoring        -> explain why a business is interesting
-├── Outreach       -> future, targeted and compliant
+├── Outreach       -> targeted and compliant
 ├── CRM            -> future pipeline
 └── Analytics      -> future performance metrics
 ```
@@ -36,6 +36,7 @@ src/dapetin/
 ├── database.py    # SQLite lead persistence
 ├── export.py      # CSV/JSON opportunity export
 ├── analysis.py    # AI-assisted opportunity analysis
+├── outreach.py    # targeted outreach provider
 ├── dashboard.py   # local web dashboard
 └── cli.py         # local MVP command
 
@@ -44,6 +45,7 @@ tests/
 ├── test_export.py
 ├── test_database.py
 ├── test_analysis.py
+├── test_outreach.py
 └── test_dashboard.py
 ```
 
@@ -64,16 +66,9 @@ pytest
 Discovery runs are persisted to SQLite. The CLI can list saved leads, filter them by pipeline status, and move a lead through the existing pipeline statuses.
 
 ```bash
-# Discover and persist leads
 python -m dapetin.cli discover kontraktor Samarinda --csv businesses.csv --enrich
-
-# List saved leads
 python -m dapetin.cli leads
-
-# Filter by status
 python -m dapetin.cli leads --status qualified
-
-# Move a lead to the next pipeline status
 python -m dapetin.cli leads --set-status 1 contacted
 ```
 
@@ -98,6 +93,21 @@ python -m dapetin.cli analyze 1
 
 Set `DAPETIN_AI_MODEL` or pass `--model` to choose the model.
 
+## Targeted outreach automation
+
+Outreach sends one explicitly requested email through a configured SMTP provider. Leads without an email, archived leads, and customers are blocked. A configurable cooldown prevents repeated sends.
+
+```bash
+export DAPETIN_SMTP_HOST="smtp.example.com"
+export DAPETIN_SMTP_PORT="587"
+export DAPETIN_SMTP_USERNAME="username"
+export DAPETIN_SMTP_PASSWORD="password"
+export DAPETIN_SMTP_SENDER="sender@example.com"
+python -m dapetin.cli outreach 1 "Partnership" "Hello, I would like to discuss a potential partnership."
+```
+
+The command moves a successfully contacted lead to `contacted`.
+
 ## Design principles
 
 1. Provider-agnostic: Google Maps or another source is an adapter, not the product.
@@ -117,4 +127,4 @@ Set `DAPETIN_AI_MODEL` or pass `--model` to choose the model.
 - [x] Lead database and pipeline
 - [x] Web dashboard
 - [x] AI-assisted opportunity analysis
-- [ ] Targeted outreach automation
+- [x] Targeted outreach automation
