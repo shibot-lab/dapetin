@@ -1,6 +1,7 @@
 import argparse
 
 from dapetin.database import LeadDatabase
+from dapetin.dashboard import serve_dashboard
 from dapetin.discovery.file_provider import CsvDiscoveryProvider
 from dapetin.discovery.providers import DemoDiscoveryProvider, DiscoveryQuery
 from dapetin.domain.models import PipelineStatus
@@ -28,6 +29,11 @@ def build_parser() -> argparse.ArgumentParser:
     leads.add_argument("--db", default="dapetin.db", help="SQLite database path")
     leads.add_argument("--status", choices=[status.value for status in PipelineStatus])
     leads.add_argument("--set-status", nargs=2, metavar=("ID", "STATUS"), help="Update a lead status")
+
+    dashboard = subparsers.add_parser("dashboard", help="Run the local web dashboard")
+    dashboard.add_argument("--db", default="dapetin.db", help="SQLite database path")
+    dashboard.add_argument("--host", default="127.0.0.1")
+    dashboard.add_argument("--port", type=int, default=8000)
 
     return parser
 
@@ -71,6 +77,8 @@ def main() -> None:
         else:
             status = PipelineStatus(args.status) if args.status else None
             _print_opportunities(database.list(status))
+    elif args.command == "dashboard":
+        serve_dashboard(args.db, args.host, args.port)
     else:
         build_parser().print_help()
 
