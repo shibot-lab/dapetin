@@ -1,5 +1,8 @@
 import argparse
 
+from dapetin.discovery.providers import DemoDiscoveryProvider, DiscoveryQuery
+from dapetin.pipeline import run_discovery
+
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
@@ -20,11 +23,19 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> None:
     args = build_parser().parse_args()
     if args.command == "discover":
-        print(
-            f"Discovery adapter not configured yet: {args.keyword!r} in {args.location!r} "
-            f"(limit={args.limit})"
-        )
-        print("Next step: connect a compliant discovery provider adapter.")
+        query = DiscoveryQuery(args.keyword, args.location, args.limit)
+        run = run_discovery(DemoDiscoveryProvider(), query)
+        print(f"DAPETIN discovery: {args.keyword!r} in {args.location!r}")
+        for index, opportunity in enumerate(run.opportunities, start=1):
+            business = opportunity.business
+            print(f"\n{index}. {business.name}")
+            print(f"   category: {business.category or '-'}")
+            print(f"   location: {business.address or '-'}")
+            print(f"   phone: {business.phone or '-'}")
+            print(f"   website: {business.website or '-'}")
+            print(f"   score: {opportunity.score.score}/100")
+            for reason in opportunity.score.reasons:
+                print(f"   - {reason}")
     else:
         build_parser().print_help()
 
