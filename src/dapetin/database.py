@@ -101,6 +101,11 @@ class LeadDatabase:
             return int(row["id"])
 
     def list(self, status: PipelineStatus | None = None) -> list[Opportunity]:
+        return [opportunity for _, opportunity in self.list_with_ids(status)]
+
+    def list_with_ids(
+        self, status: PipelineStatus | None = None
+    ) -> list[tuple[int, Opportunity]]:
         with self._connect() as connection:
             if status is None:
                 rows = connection.execute("SELECT * FROM leads ORDER BY score DESC, id DESC").fetchall()
@@ -109,7 +114,7 @@ class LeadDatabase:
                     "SELECT * FROM leads WHERE status = ? ORDER BY score DESC, id DESC",
                     (status.value,),
                 ).fetchall()
-        return [_row_to_opportunity(row) for row in rows]
+        return [(int(row["id"]), _row_to_opportunity(row)) for row in rows]
 
     def update_status(self, lead_id: int, status: PipelineStatus) -> None:
         with self._connect() as connection:
