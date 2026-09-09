@@ -35,12 +35,14 @@ src/dapetin/
 ├── qualification/ # opportunity rules
 ├── database.py    # SQLite lead persistence
 ├── export.py      # CSV/JSON opportunity export
+├── dashboard.py   # local web dashboard
 └── cli.py         # local MVP command
 
 tests/
 ├── test_scoring.py
 ├── test_export.py
-└── test_database.py
+├── test_database.py
+└── test_dashboard.py
 ```
 
 ## Quick start
@@ -73,6 +75,16 @@ python -m dapetin.cli leads --status qualified
 python -m dapetin.cli leads --set-status 1 contacted
 ```
 
+## Web dashboard
+
+The local dashboard reads the existing SQLite lead database, shows saved opportunities with their explainable scores, filters by pipeline status, and updates an existing lead's pipeline status.
+
+```bash
+python -m dapetin.cli dashboard
+```
+
+Then open `http://127.0.0.1:8000` in a browser. Use `--db`, `--host`, or `--port` when a different local database or port is needed.
+
 ## Design principles
 
 1. Provider-agnostic: Google Maps or another source is an adapter, not the product.
@@ -90,6 +102,6 @@ python -m dapetin.cli leads --set-status 1 contacted
 - [x] Website enrichment
 - [x] CSV/JSON export
 - [x] Lead database and pipeline
-- [ ] Web dashboard
+- [x] Web dashboard
 - [ ] AI-assisted opportunity analysis
 - [ ] Targeted outreach automation
