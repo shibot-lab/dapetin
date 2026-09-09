@@ -1,4 +1,5 @@
 import argparse
+import os
 
 from dapetin.analysis import OpenAIOpportunityAnalysisProvider
 from dapetin.database import LeadDatabase
@@ -7,6 +8,7 @@ from dapetin.discovery.file_provider import CsvDiscoveryProvider
 from dapetin.discovery.providers import DemoDiscoveryProvider, DiscoveryQuery
 from dapetin.domain.models import PipelineStatus
 from dapetin.enrichment.website import WebsiteEnricher
+from dapetin.outreach import SmtpOutreachProvider, send_targeted_outreach
 from dapetin.pipeline import enrich_run, run_discovery
 
 
@@ -40,6 +42,13 @@ def build_parser() -> argparse.ArgumentParser:
     dashboard.add_argument("--db", default="dapetin.db", help="SQLite database path")
     dashboard.add_argument("--host", default="127.0.0.1")
     dashboard.add_argument("--port", type=int, default=8000)
+
+    outreach = subparsers.add_parser("outreach", help="Send one targeted outreach email")
+    outreach.add_argument("lead_id", type=int)
+    outreach.add_argument("subject")
+    outreach.add_argument("body")
+    outreach.add_argument("--db", default="dapetin.db", help="SQLite database path")
+    outreach.add_argument("--cooldown-hours", type=int, default=24)
 
     return parser
 
@@ -100,6 +109,32 @@ def main() -> None:
         print(f"Next step: {analysis.next_step}")
     elif args.command == "dashboard":
         serve_dashboard(args.db, args.host, args.port)
+    elif args.command == "outreach":
+        database = LeadDatabase(args.db)
+        records = {lead_id: opportunity for lead_id, opportunity in database.list_with_ids()}
+        opportunity = records.get(args.lead_id)
+        if opportunity is None:
+            raise SystemExit(f"Lead {args.lead_id} not found")
+        required = ("DAPETIN_SMTP_HOST", "DAPETIN_SMTP_PORT", "DAPETIN_SMTP_USERNAME", "DAPETIN_SMTP_PASSWORD", "DAPETIN_SMTP_SENDER")
+        missing = [name for name in required if not os.getenv(name)]
+        if missing:
+            raise SystemExit(f"Missing SMTP configuration: {', '.join(missing)}")
+        provider = SmtpOutreachProvider(
+            os.environ["DAPETIN_SMTP_HOST"],
+            int(os.environ["DAPETIN_SMTP_PORT"]),
+            os.environ["DAPETIN_SMTP_USERNAME"],
+            os.environ["DAPETIN_SMTP_PASSWORD"],
+            os.environ["DAPETIN_SMTP_SENDER"],
+        )
+        send_targeted_outreach(
+            opportunity,
+            provider,
+            args.subject,
+            args.body,
+            cooldown_hours=args.cooldown_hours,
+        )
+        database.update_status(args.lead_id, PipelineStatus.CONTACTED)
+        print(f"Targeted outreach sent to {opportunity.business.email}")
     else:
         build_parser().print_help()
 
