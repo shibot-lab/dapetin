@@ -61,13 +61,39 @@ python -m dapetin.cli --help
 pytest
 ```
 
+## Business discovery
+
+Discovery now uses OpenStreetMap through the read-only Overpass API by default. A CSV export remains available as an explicit provider input.
+
+```bash
+python -m dapetin.cli discover kontraktor Samarinda --limit 20 --db dapetin.db
+```
+
+The command saves discovered businesses to SQLite. You can then list them:
+
+```bash
+python -m dapetin.cli leads --db dapetin.db
+```
+
+Use `--enrich` to run the existing public website enrichment step when discovered records include websites:
+
+```bash
+python -m dapetin.cli discover kontraktor Samarinda --limit 20 --enrich --db dapetin.db
+```
+
+OpenStreetMap data is open data under the Open Database License (ODbL); DAPETIN displays attribution in the dashboard.
+
+For a compliant CSV export instead of the live discovery provider:
+
+```bash
+python -m dapetin.cli discover kontraktor Samarinda --csv businesses.csv --db dapetin.db
+```
+
 ## Lead database and pipeline
 
 Discovery runs are persisted to SQLite. The CLI can list saved leads, filter them by pipeline status, and move a lead through the existing pipeline statuses.
 
 ```bash
-python -m dapetin.cli discover kontraktor Samarinda --csv businesses.csv --enrich
-python -m dapetin.cli leads
 python -m dapetin.cli leads --status qualified
 python -m dapetin.cli leads --set-status 1 contacted
 ```
@@ -77,7 +103,7 @@ python -m dapetin.cli leads --set-status 1 contacted
 The local dashboard reads the existing SQLite lead database, shows saved opportunities with their explainable scores, filters by pipeline status, and updates an existing lead's pipeline status.
 
 ```bash
-python -m dapetin.cli dashboard
+python -m dapetin.cli dashboard --db dapetin.db
 ```
 
 Then open `http://127.0.0.1:8000` in a browser. Use `--db`, `--host`, or `--port` when a different local database or port is needed.
