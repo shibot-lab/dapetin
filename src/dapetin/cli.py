@@ -1,5 +1,6 @@
 import argparse
 
+from dapetin.analysis import OpenAIOpportunityAnalysisProvider
 from dapetin.database import LeadDatabase
 from dapetin.dashboard import serve_dashboard
 from dapetin.discovery.file_provider import CsvDiscoveryProvider
@@ -29,6 +30,11 @@ def build_parser() -> argparse.ArgumentParser:
     leads.add_argument("--db", default="dapetin.db", help="SQLite database path")
     leads.add_argument("--status", choices=[status.value for status in PipelineStatus])
     leads.add_argument("--set-status", nargs=2, metavar=("ID", "STATUS"), help="Update a lead status")
+
+    analyze = subparsers.add_parser("analyze", help="Analyze a saved opportunity with AI")
+    analyze.add_argument("lead_id", type=int)
+    analyze.add_argument("--db", default="dapetin.db", help="SQLite database path")
+    analyze.add_argument("--model", help="AI model name")
 
     dashboard = subparsers.add_parser("dashboard", help="Run the local web dashboard")
     dashboard.add_argument("--db", default="dapetin.db", help="SQLite database path")
@@ -77,6 +83,21 @@ def main() -> None:
         else:
             status = PipelineStatus(args.status) if args.status else None
             _print_opportunities(database.list(status))
+    elif args.command == "analyze":
+        database = LeadDatabase(args.db)
+        records = {lead_id: opportunity for lead_id, opportunity in database.list_with_ids()}
+        opportunity = records.get(args.lead_id)
+        if opportunity is None:
+            raise SystemExit(f"Lead {args.lead_id} not found")
+        analysis = OpenAIOpportunityAnalysisProvider(model=args.model).analyze(opportunity)
+        print(f"Summary: {analysis.summary}")
+        print("Strengths:")
+        for item in analysis.strengths:
+            print(f"- {item}")
+        print("Risks:")
+        for item in analysis.risks:
+            print(f"- {item}")
+        print(f"Next step: {analysis.next_step}")
     elif args.command == "dashboard":
         serve_dashboard(args.db, args.host, args.port)
     else:
