@@ -33,12 +33,14 @@ src/dapetin/
 ├── discovery/     # provider-agnostic discovery interfaces
 ├── enrichment/    # normalization/enrichment
 ├── qualification/ # opportunity rules
+├── database.py    # SQLite lead persistence
 ├── export.py      # CSV/JSON opportunity export
 └── cli.py         # local MVP command
 
 tests/
 ├── test_scoring.py
-└── test_export.py
+├── test_export.py
+└── test_database.py
 ```
 
 ## Quick start
@@ -51,6 +53,24 @@ source .venv/bin/activate
 pip install -e .
 python -m dapetin.cli --help
 pytest
+```
+
+## Lead database and pipeline
+
+Discovery runs are persisted to SQLite. The CLI can list saved leads, filter them by pipeline status, and move a lead through the existing pipeline statuses.
+
+```bash
+# Discover and persist leads
+python -m dapetin.cli discover kontraktor Samarinda --csv businesses.csv --enrich
+
+# List saved leads
+python -m dapetin.cli leads
+
+# Filter by status
+python -m dapetin.cli leads --status qualified
+
+# Move a lead to the next pipeline status
+python -m dapetin.cli leads --set-status 1 contacted
 ```
 
 ## Design principles
@@ -69,7 +89,7 @@ pytest
 - [x] First discovery provider adapter
 - [x] Website enrichment
 - [x] CSV/JSON export
-- [ ] Lead database and pipeline
+- [x] Lead database and pipeline
 - [ ] Web dashboard
 - [ ] AI-assisted opportunity analysis
 - [ ] Targeted outreach automation
