@@ -35,6 +35,7 @@ src/dapetin/
 ├── qualification/ # opportunity rules
 ├── database.py    # SQLite lead persistence
 ├── export.py      # CSV/JSON opportunity export
+├── analysis.py    # AI-assisted opportunity analysis
 ├── dashboard.py   # local web dashboard
 └── cli.py         # local MVP command
 
@@ -42,6 +43,7 @@ tests/
 ├── test_scoring.py
 ├── test_export.py
 ├── test_database.py
+├── test_analysis.py
 └── test_dashboard.py
 ```
 
@@ -85,6 +87,17 @@ python -m dapetin.cli dashboard
 
 Then open `http://127.0.0.1:8000` in a browser. Use `--db`, `--host`, or `--port` when a different local database or port is needed.
 
+## AI-assisted opportunity analysis
+
+AI analysis uses the existing opportunity record and score reasons as input. The integration uses the OpenAI Responses API without adding an SDK dependency.
+
+```bash
+export OPENAI_API_KEY="your-api-key"
+python -m dapetin.cli analyze 1
+```
+
+Set `DAPETIN_AI_MODEL` or pass `--model` to choose the model.
+
 ## Design principles
 
 1. Provider-agnostic: Google Maps or another source is an adapter, not the product.
@@ -103,5 +116,5 @@ Then open `http://127.0.0.1:8000` in a browser. Use `--db`, `--host`, or `--port
 - [x] CSV/JSON export
 - [x] Lead database and pipeline
 - [x] Web dashboard
-- [ ] AI-assisted opportunity analysis
+- [x] AI-assisted opportunity analysis
 - [ ] Targeted outreach automation
